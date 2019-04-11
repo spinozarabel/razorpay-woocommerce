@@ -131,9 +131,9 @@ class RZP_Webhook
 		// If no order mentioned get all orders on-hold va-bacs for this user associated with this VA
 		// for each order check payment amounts and dates. If they tally, set status to processing
 		
-		( $data['payload']['payment']['entity']['refund_status'] 	? return : false);
-		( $data['payload']['payment']['entity']['error_code'] 		? return : false);
-		(!$data['payload']['payment']['entity']['captured'] 		? return : false);
+		//( $data['payload']['payment']['entity']['refund_status'] 	? return : false);
+		//( $data['payload']['payment']['entity']['error_code'] 		? return : false);
+		//(!$data['payload']['payment']['entity']['captured'] 		? return : false);
 		
 		$razorpayPaymentId	= $data['payload']['payment']['entity']['id'];
 		error_log(print_r('webhook payment_ID:' . $razorpayPaymentId, true));
