@@ -189,9 +189,9 @@ class RZP_Webhook
 					
 					if ( strtotime($payment_date) > strtotime($order_creation_date) )
 					{
-						// we have folowing conditions satisfied here:
+						// we have folowing conditions satisfied for a valid match of payment to order
 						// 1. sritoni_id's match
-						// 2. Odre amounts match
+						// 2. Order amounts match
 						// 3. Order is on-hold pending payment
 						// 4. Payment method is vabacs
 						$order_note = 'Payment received by Razorpay Virtual Account ID: ' . $va_id .
@@ -202,7 +202,10 @@ class RZP_Webhook
 						// we append the VA payment ID to the payment method of the order
 
 
-						$order->update_meta_data('va_payment_id', $last_payment_id);
+						$order->update_meta_data('va_payment_id', $razorpayPaymentId);
+						$order->update_meta_data('amount_paid_by_va_payment', $payment_amount_p * 0.01);  // in Rs
+						$order->update_meta_data('bank_reference', $bank_reference);
+						$order->update_meta_data('payment_notes_by_customer', $payment_description);
 						$order->save;
 
 						$transaction_id = $razorpayPaymentId . "," . $payment_date . "," . $va_id . 
