@@ -211,6 +211,7 @@ class RZP_Webhook
 						$transaction_id = $razorpayPaymentId . "," . $payment_date . "," . $va_id . 
 										"," . $bank_reference;
 						$order->payment_complete($transaction_id);
+						error_log(print_r('Order completed and updated meta:' . $transaction_id, true));
 					}
 					
 				}
