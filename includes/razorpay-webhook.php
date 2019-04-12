@@ -27,14 +27,16 @@ class RZP_Webhook
      */
     const PAYMENT_AUTHORIZED = 'payment.authorized';
     const PAYMENT_FAILED     = 'payment.failed';
-	const VA_CREDITED     	 = "virtual_account.credited";  		// MA
-	
+	const VA_CREDITED     	 = "virtual_account.credited";	// MA
+	const VERBOSE			 = true;
 
     function __construct()
     {
         $this->razorpay = new WC_Razorpay(false);
 
         $this->api = $this->razorpay->getRazorpayApiInstance();
+		
+		$this->verbose = self::VERBOSE;
     }
 
     /**
@@ -98,21 +100,21 @@ class RZP_Webhook
                 switch ($data['event'])
                 {
                     case self::PAYMENT_AUTHORIZED:
-                        if ($verbose) {
+                        if ($this->verbose) {
 							error_log(print_r('webhook event type: ' , true));
 							error_log(print_r($data['event'] , true));
 						}
 						return $this->paymentAuthorized($data);					
 
                     case self::PAYMENT_FAILED:
-						if ($verbose) {
+						if ($this->verbose) {
 							error_log(print_r('webhook event type: ' , true));
 							error_log(print_r($data['event'] , true));
 						}
                         return $this->paymentFailed($data);
 						
 					case self::VA_CREDITED:
-                        if ($verbose) {
+                        if ($this->verbose) {
 							error_log(print_r('webhook event type: ' , true));
 							error_log(print_r($data['event'] , true));
 						}
@@ -151,19 +153,19 @@ class RZP_Webhook
 		//(!$data['payload']['payment']['entity']['captured'] 		? return : false);
 		
 		$razorpayPaymentId	= $data['payload']['payment']['entity']['id'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment_ID: ' , true));
 							error_log(print_r($razorpayPaymentId , true));
 						}
 		
 		$payment_amount_p	= $data['payload']['payment']['entity']['amount']; // in paisa
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment amount in Paise: ' , true));
 							error_log(print_r($payment_amount_p , true));
 						}
 		
 		$payment_timestamp	= $data['payload']['payment']['entity']['created_at'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment timestamp: ' , true));
 							error_log(print_r($payment_timestamp , true));
 						}
@@ -172,31 +174,31 @@ class RZP_Webhook
 		// with this payment ID get the VA payment
 		
 		$payment_description	= $data['payload']['payment']['entity']['description'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment description: ' , true));
 							error_log(print_r($payment_description , true));
 						}
 		
 		$va_payment 		= $this->getVaPaymentEntity($razorpayPaymentId, $data);
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment object: ' , true));
 							error_log(print_r($va_payment , true));
 						}
 		// with this payment entity, get the associated VA ID
 		$va_id				= $va_payment['virtual_account']['id'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment VA ID: ' , true));
 							error_log(print_r($va_id , true));
 						}
 		
 		$sritoni_id			= $va_payment['virtual_account']['notes']['idnumber'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment sritoni ID: ' , true));
 							error_log(print_r($sritoni_id , true));
 						}
 		
 		$bank_reference		= $va_payment['bank_reference'];
-		if ($verbose) {
+		if ($this->verbose) {
 							error_log(print_r('webhook payment bank reference: ' , true));
 							error_log(print_r($bank_reference , true));
 						}
@@ -211,7 +213,7 @@ class RZP_Webhook
 		{
 			// get WP user id associated with order
 			$user_id = $order->get_user_id();
-			if ($verbose) {
+			if ($this->verbose) {
 				error_log(print_r('webhook order sritoni_id:' . get_user_meta( $user_id, 'nickname', true ), true));			
 				error_log(print_r('webhook order amount in paise:' . round($order->get_total() * 100), true));
 			}
@@ -225,7 +227,7 @@ class RZP_Webhook
 					// one last check, is payment date after order date?
 					$order_creation_date = $order->get_date_created();
 					
-					if ($verbose) {
+					if ($this->verbose) {
 						error_log(print_r('payment date is after order date:' . ( strtotime($payment_date) > strtotime($order_creation_date) ), true));
 					}
 					
@@ -253,7 +255,7 @@ class RZP_Webhook
 						$transaction_id = $razorpayPaymentId . "," . $payment_date . "," . $va_id . 
 										"," . $bank_reference;
 						$order->payment_complete($transaction_id);
-						if ($verbose) {
+						if ($this->verbose) {
 							error_log(print_r('Order completed and updated meta:' . $transaction_id, true));
 						}
 					}
