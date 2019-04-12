@@ -6,6 +6,8 @@ require_once __DIR__.'/../razorpay-sdk/Razorpay.php';
 use Razorpay\Api\Api;
 use Razorpay\Api\Errors;
 
+$verbose = true;
+
 class RZP_Webhook
 {
     /**
@@ -27,7 +29,6 @@ class RZP_Webhook
     const PAYMENT_FAILED     = 'payment.failed';
 	const VA_CREDITED     	 = "virtual_account.credited";  		// MA
 	
-	$verbose = true;
 
     function __construct()
     {
