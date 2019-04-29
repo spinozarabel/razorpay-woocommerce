@@ -2,8 +2,8 @@
 Contributors: razorpay
 Tags: razorpay, payments, india, woocommerce, ecommerce
 Requires at least: 3.9.2
-Tested up to: 5.1.1
-Stable tag: 1.6.3
+Tested up to: 5.2-RC1-45273
+Stable tag: 2.0.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -44,6 +44,8 @@ This is compatible with WooCommerce>=2.4, including the new 3.0 release. It has 
 = 2.0.0 =
 * Removes support for WooCommerce Currency Convertor
 * Switches to Razorpay's Native Multi-Currency support
+* Adds support for [Price Based on Country Plugin](https://www.pricebasedcountry.com/)
+* Tested upto WordPress 5.2-RC1 and WooCommerce 3.6.2
 
 = 1.6.3 =
 * Allows for null values in displayAmount
@@ -145,7 +147,7 @@ version higher than 2.0.0, which comes with native multi-currency support.
 
 == Support ==
 
-Visit [razorpay.com](https://razorpay.com) for support requests or email us at <integrations@razorpay.com>.
+Visit [razorpay.com](https://razorpay.com/support/#request/merchant/technical-assistance) for support requests.
 
 == License ==
 

@@ -3,10 +3,10 @@
  * Plugin Name: Razorpay for WooCommerce
  * Plugin URI: https://razorpay.com
  * Description: Razorpay Payment Gateway Integration for WooCommerce
- * Version: 1.6.3
- * Stable tag: 1.6.3
+ * Version: 2.0.0
+ * Stable tag: 2.0.0
  * Author: Team Razorpay
- * WC tested up to: 3.2.1
+ * WC tested up to: 3.6.2
  * Author URI: https://razorpay.com
 */
 
@@ -46,7 +46,7 @@ function woocommerce_razorpay_init()
 
         const DEFAULT_LABEL                  = 'Credit Card/Debit Card/NetBanking';
         const DEFAULT_DESCRIPTION            = 'Pay securely by Credit or Debit card or Internet Banking through Razorpay.';
-        const DEFAULT_SUCCESS_MESSAGE  = 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be processing your order soon.';
+        const DEFAULT_SUCCESS_MESSAGE        = 'Thank you for shopping with us. Your account has been charged and your transaction is successful. We will be processing your order soon.';
 
         protected $visibleSettings = array(
             'enabled',
@@ -85,6 +85,13 @@ function woocommerce_razorpay_init()
          * @var string
          */
         public $method_title = 'Razorpay';
+
+
+        /**
+         * Description of the payment method shown on the admin page.
+         * @var  string
+         */
+        public $method_description = 'Allow customers to securely pay via Razorpay (Credit/Debit Cards, NetBanking, UPI, Wallets)';
 
         /**
          * Icon URL, set in constructor
@@ -810,7 +817,6 @@ EOT;
 
                 $order->payment_complete($razorpayPaymentId);
                 $order->add_order_note("Razorpay payment successful <br/>Razorpay Id: $razorpayPaymentId");
-                $order->add_order_note($this->msg['message']);
 
                 if (isset($woocommerce->cart) === true)
                 {
