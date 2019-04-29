@@ -378,7 +378,7 @@ class RZP_Webhook
     {
         try
         {
-            $payment = $this->api->payment->bankTransfer($razorpayPaymentId);
+            $payment = $this->api->payment->fetch($razorpayPaymentId)->bankTransfer();
         }
         catch (Exception $e)
         {
