@@ -222,8 +222,13 @@ class RZP_Webhook
 						'meta_value'		=> $razorpayPaymentId,
 					 );
 		$orders_completed = wc_get_orders( $args ); // these are orders for this user either processing or complete
-		if ($orders_completed)
-		{	// we have orders that already include this payment ID so this webhook must be old or redundant, so quit
+		if (!empty($orders_completed))
+		{	// we already have completed orders that reconcile this payment ID so this webhook must be old or redundant, so quit
+			if ($this->verbose) 
+			{
+				error_log(print_r('orders_completed using this payment_id:' . $razorpayPaymentId, true));			
+				error_log(print_r($orders_completed, true));
+			}
 			return;
 		}
 		// end of segment added 08/21/2019---------------------------------------------
