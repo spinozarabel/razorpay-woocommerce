@@ -143,6 +143,7 @@ class RZP_Webhook
      */
     protected function vaCredited(array $data)
     {
+		// 08/21/2019 added break on line 264
 		// see if payment contains order number. If so get that order using the order ID.
 		// get the details of the payment, virtual account and user associated with that order.
 		// If no order mentioned get all orders on-hold va-bacs for this user associated with this VA
@@ -196,6 +197,12 @@ class RZP_Webhook
 							error_log(print_r('webhook payment sritoni ID: ' , true));
 							error_log(print_r($sritoni_id , true));
 						}
+		// get the WP userid derived from the VA of the webhook				
+		$webhook_derived_userid			= $va_payment['virtual_account']['notes']['id'];
+		if ($this->verbose) {
+							error_log(print_r('webhook payment WP user ID: ' , true));
+							error_log(print_r($webhook_derived_userid , true));
+						}
 		
 		$bank_reference		= $va_payment['bank_reference'];
 		if ($this->verbose) {
@@ -203,6 +210,25 @@ class RZP_Webhook
 							error_log(print_r($bank_reference , true));
 						}
 		
+		// added this segment 08/21/2019----------------------------------------------
+		// get all orders not 'on-hold' with payment method va-bacs, to check for webhook payment_id already accounted for or not
+		$args = array(
+						'status' 			=> array(
+														'processing',
+														'complete',
+													),
+						'payment_method' 	=> 'vabacs',
+						'customer_id'		=> $webhook_derived_userid,
+						'meta_value'		=> $razorpayPaymentId,
+					 );
+		$orders_completed = wc_get_orders( $args ); // these are orders for this user either processing or complete
+		if ($orders_completed)
+		{	// we have orders that already include this payment ID so this webhook must be old or redundant, so quit
+			return;
+		}
+		// end of segment added 08/21/2019---------------------------------------------
+		//
+		// Now the webhook data is fresh and so let's reconcile against open on-hold vabacs order
 		// get all orders on-hold using va-bacs payment method
 		$args = array(
 						'status' 			=> 'on-hold',
@@ -221,10 +247,10 @@ class RZP_Webhook
 			// get user meta nickname holding our sritoni ID
 			if ( $sritoni_id == get_user_meta( $user_id, 'nickname', true ) )
 			{
-				// this is a plausible order. Still, do the amounts match?
+				// Users match. Still, do the amounts match?
 				if ( $payment_amount_p == round($order->get_total() * 100) )
 				{
-					// one last check, is payment date after order date?
+					// amounts match, is payment date after order date?
 					$order_creation_date = $order->get_date_created();
 					
 					if ($this->verbose) {
@@ -234,10 +260,12 @@ class RZP_Webhook
 					if ( strtotime($payment_date) > strtotime($order_creation_date) )
 					{
 						// we have folowing conditions satisfied for a valid match of payment to order
-						// 1. sritoni_id's match
+						// 1. sritoni_id's match between webhood order and user's order on-hold
 						// 2. Order amounts match
 						// 3. Order is on-hold pending payment
 						// 4. Payment method is vabacs
+						// 5. Payment received only after order placed
+						// TODO check that this payment ID has not already been reconciled against an order
 						$order_note = 'Payment received by Razorpay Virtual Account ID: ' . $va_id .
 					              ' Payment ID: ' . $razorpayPaymentId . '  on: ' . date('Y/m/d', $payment_timestamp) .
 					              ' Payment description: ' . $payment_description . ' bank reference: ' . $bank_reference;
@@ -258,6 +286,7 @@ class RZP_Webhook
 						if ($this->verbose) {
 							error_log(print_r('Order completed and updated meta:' . $transaction_id, true));
 						}
+						break;	// we have found our order and reconciled it against webhook. No need to look further, get out of loop
 					}
 					
 				}
