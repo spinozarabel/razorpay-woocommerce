@@ -215,7 +215,7 @@ class RZP_Webhook
 		$args = array(
 						'status' 			=> array(
 														'processing',
-														'complete',
+														'completed',
 													),
 						'payment_method' 	=> 'vabacs',
 						'customer_id'		=> $webhook_derived_userid,
