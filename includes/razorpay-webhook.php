@@ -234,12 +234,25 @@ class RZP_Webhook
 		// end of segment added 08/21/2019---------------------------------------------
 		//
 		// Now the webhook data is fresh and so let's reconcile against open on-hold vabacs order
-		// get all orders on-hold using va-bacs payment method
+		// get all orders on-hold using va-bacs payment method, for this wpuser whose ID is derived from webhook
+		// At most there should be only a few orders 
 		$args = array(
 						'status' 			=> 'on-hold',
 						'payment_method' 	=> 'vabacs',
+						'customer_id'		=> $webhook_derived_userid,
 					 );
 		$orders = wc_get_orders( $args );
+		
+		if (empty($orders))
+		{	// No orders exist for this webhook payment, log that fact and exit
+			if ($this->verbose) 
+			{
+				error_log(print_r('No Orders on-hold for user with sritoniID : ' . $sritoni_id . 
+									'so cannot reconcile this payment_id:' . $razorpayPaymentId, true));			
+			}
+			return;
+		}
+		// we do have open orders for this user, so lets see if we can reconcile the webhook payment to one of these open orders
 		foreach ($orders as $key => $order)
 		{
 			// get WP user id associated with order
