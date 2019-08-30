@@ -25,10 +25,11 @@ class RZP_Webhook
     /**
      * Event constants
      */
-    const PAYMENT_AUTHORIZED = 'payment.authorized';
-    const PAYMENT_FAILED     = 'payment.failed';
-	const VA_CREDITED     	 = "virtual_account.credited";	// MA
-	const VERBOSE			 = true;
+    const PAYMENT_AUTHORIZED 		= 'payment.authorized';
+    const PAYMENT_FAILED     		= 'payment.failed';
+	const SUBSCRIPTION_CANCELLED    = 'subscription.cancelled';
+	const VA_CREDITED     	 		= "virtual_account.credited";	// MA
+	const VERBOSE			 		= true;							// MA
 
     function __construct()
     {
