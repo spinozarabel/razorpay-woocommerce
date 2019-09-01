@@ -158,63 +158,67 @@ class RZP_Webhook
 		//(!$data['payload']['payment']['entity']['captured'] 		? return : false);
 
 		$razorpayPaymentId	= $data['payload']['payment']['entity']['id'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment_ID: ' , true));
-							error_log(print_r($razorpayPaymentId , true));
-						}
+		
 
 		$payment_amount_p	= $data['payload']['payment']['entity']['amount']; // in paisa
-		if ($this->verbose) {
-							error_log(print_r('webhook payment amount in Paise: ' , true));
-							error_log(print_r($payment_amount_p , true));
-						}
+
 
 		$payment_timestamp	= $data['payload']['payment']['entity']['created_at'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment timestamp: ' , true));
-							error_log(print_r($payment_timestamp , true));
-						}
+
 
 		$payment_date		= date('Y/m/d H:i:s', $payment_timestamp);
 		// with this payment ID get the VA payment
 
 		$payment_description	= $data['payload']['payment']['entity']['description'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment description: ' , true));
-							error_log(print_r($payment_description , true));
-						}
+
 
 		$va_payment 		= $this->getVaPaymentEntity($razorpayPaymentId, $data);
-		if ($this->verbose) {
-							error_log(print_r('webhook payment object: ' , true));
-							error_log(print_r($va_payment , true));
-						}
+
 		// with this payment entity, get the associated VA ID
 		$va_id				= $va_payment['virtual_account']['id'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment VA ID: ' , true));
-							error_log(print_r($va_id , true));
-						}
 
 		$sritoni_id			= $va_payment['virtual_account']['notes']['idnumber'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment sritoni ID: ' , true));
-							error_log(print_r($sritoni_id , true));
-						}
-		// get the WP userid derived from the VA of the webhook
-		$webhook_derived_userid			= $va_payment['virtual_account']['notes']['id'];
-		if ($this->verbose) {
-							error_log(print_r('webhook payment WP user ID: ' , true));
-							error_log(print_r($webhook_derived_userid , true));
-						}
+
+		// get the WP username from the VA notes. Note that this is the Moodle ID, not the WP userid
+		$webhook_wp_username = $va_payment['virtual_account']['notes']['id'];
 
 		$bank_reference		= $va_payment['bank_reference'];
+
+		// get the user details based on username
+		$webhook_wp_user = get_user_by('login', $webhook_wp_username);
+		$webhook_wp_userid = $webhook_wp_user->ID ?? "web_hook_user_not_found";
+		// log all extracted data if verbose
 		if ($this->verbose) {
+							error_log(print_r('webhook payment_ID: ' , true));
+							error_log(print_r($razorpayPaymentId , true));
+							
+							error_log(print_r('webhook payment amount in Paise: ' , true));
+							error_log(print_r($payment_amount_p , true));
+							
+							error_log(print_r('webhook payment timestamp: ' , true));
+							error_log(print_r($payment_timestamp , true));
+							
+							error_log(print_r('webhook payment description: ' , true));
+							error_log(print_r($payment_description , true));
+							
+							error_log(print_r('webhook payment object: ' , true));
+							error_log(print_r($va_payment , true));
+							
+							error_log(print_r('webhook payment VA ID: ' , true));
+							error_log(print_r($va_id , true));
+							
+							error_log(print_r('webhook payment sritoni ID: ' , true));
+							error_log(print_r($sritoni_id , true));
+							
+							error_log(print_r('webhook payment WP username: ' , true));
+							error_log(print_r($webhook_wp_username , true));
+							
 							error_log(print_r('webhook payment bank reference: ' , true));
 							error_log(print_r($bank_reference , true));
+							
+							error_log(print_r('webhook user WP userID ' , true));
+							error_log(print_r($webhook_wp_userid , true));
 						}
-
-		// added this segment 08/21/2019----------------------------------------------
 		// get all orders not 'on-hold' with payment method va-bacs, to check for webhook payment_id already accounted for or not
 		$args = array(
 						'status' 			=> array(
@@ -222,7 +226,7 @@ class RZP_Webhook
 														'completed',
 													),
 						'payment_method' 	=> 'vabacs',
-						'customer_id'		=> $webhook_derived_userid,
+						'customer_id'		=> $webhook_wp_userid,
 						'meta_value'		=> $razorpayPaymentId,
 					 );
 		$orders_completed = wc_get_orders( $args ); // these are orders for this user either processing or complete
@@ -243,7 +247,7 @@ class RZP_Webhook
 		$args = array(
 						'status' 			=> 'on-hold',
 						'payment_method' 	=> 'vabacs',
-						'customer_id'		=> $webhook_derived_userid,
+						'customer_id'		=> $webhook_wp_userid,
 					 );
 		$orders = wc_get_orders( $args );
 
@@ -274,9 +278,14 @@ class RZP_Webhook
 				{
 					// amounts match, is payment date after order date?
 					$order_creation_date = $order->get_date_created();
+					$order_number	= $order->get_order_number();
+					// is this order number contained in the payment description? check?
 
 					if ($this->verbose) {
 						error_log(print_r('payment date is after order date:' . ( strtotime($payment_date) > strtotime($order_creation_date) ), true));
+						
+						error_log(print_r('orders_number:' . $order_number, true));
+						error_log(print_r('strpos of order number in payment description:' . strpos($payment_description, $order_number), true));
 					}
 
 					if ( strtotime($payment_date) > strtotime($order_creation_date) )
@@ -287,7 +296,8 @@ class RZP_Webhook
 						// 3. Order is on-hold pending payment
 						// 4. Payment method is vabacs
 						// 5. Payment received only after order placed
-						// TODO check that this payment ID has not already been reconciled against an order
+						// 
+						
 						$order_note = 'Payment received by Razorpay Virtual Account ID: ' . $va_id .
 					              ' Payment ID: ' . $razorpayPaymentId . '  on: ' . date('Y/m/d', $payment_timestamp) .
 					              ' Payment description: ' . $payment_description . ' bank reference: ' . $bank_reference;
