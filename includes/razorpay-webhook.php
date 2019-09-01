@@ -147,26 +147,20 @@ class RZP_Webhook
      */
     protected function vaCredited(array $data)
     {
-		// 08/21/2019 added break on line 264
-		// see if payment contains order number. If so get that order using the order ID.
-		// get the details of the payment, virtual account and user associated with that order.
-		// If no order mentioned get all orders on-hold va-bacs for this user associated with this VA
-		// for each order check payment amounts and dates. If they tally, set status to processing
-
-		//( $data['payload']['payment']['entity']['refund_status'] 	? return : false);
-		//( $data['payload']['payment']['entity']['error_code'] 		? return : false);
-		//(!$data['payload']['payment']['entity']['captured'] 		? return : false);
-
+		$timezone = new DateTimeZone('Asia/Kolkata');
+		
 		$razorpayPaymentId	= $data['payload']['payment']['entity']['id'];
 		
 
 		$payment_amount_p	= $data['payload']['payment']['entity']['amount']; // in paisa
 
+		$payment_datetime	= new DateTime('@' . $data['payload']['payment']['entity']['created_at']);
+		$payment_datetime->setTimezone($timezone);
+		
+		//$payment_timestamp	= $data['payload']['payment']['entity']['created_at'];
 
-		$payment_timestamp	= $data['payload']['payment']['entity']['created_at'];
 
-
-		$payment_date		= date('Y/m/d H:i:s', $payment_timestamp);
+		//$payment_date		= date('Y/m/d H:i:s', $payment_timestamp);
 		// with this payment ID get the VA payment
 
 		$payment_description	= $data['payload']['payment']['entity']['description'];
@@ -196,7 +190,10 @@ class RZP_Webhook
 							error_log(print_r($payment_amount_p , true));
 							
 							error_log(print_r('webhook payment timestamp: ' , true));
-							error_log(print_r($payment_timestamp , true));
+							error_log(print_r($data['payload']['payment']['entity']['created_at'] , true));
+							
+							error_log(print_r('webhook payment date: ' , true));
+							error_log(print_r($payment_datetime->format('Y-m-d H:i:s') , true));
 							
 							error_log(print_r('webhook payment description: ' , true));
 							error_log(print_r($payment_description , true));
@@ -278,17 +275,21 @@ class RZP_Webhook
 				{
 					// amounts match, is payment date after order date?
 					$order_creation_date = $order->get_date_created();
+					
+					$order_creation_datetime		= new DateTime( '@' . $order->get_date_created()->getTimestamp());
+					$order_creation_datetime->setTimezone($timezone);
+					
 					$order_number	= $order->get_order_number();
 					// is this order number contained in the payment description? check?
 
 					if ($this->verbose) {
-						error_log(print_r('payment date is after order date:' . ( strtotime($payment_date) > strtotime($order_creation_date) ), true));
+						error_log(print_r('payment date is after order date:' . ($payment_datetime > $order_creation_datetime), true));
 						
 						error_log(print_r('orders_number:' . $order_number, true));
 						error_log(print_r('strpos of order number in payment description:' . strpos($payment_description, $order_number), true));
 					}
 
-					if ( strtotime($payment_date) > strtotime($order_creation_date) )
+					if ($payment_datetime > $order_creation_datetime)
 					{
 						// we have folowing conditions satisfied for a valid match of payment to order
 						// 1. sritoni_id's match between webhood order and user's order on-hold
@@ -299,7 +300,7 @@ class RZP_Webhook
 						// 
 						
 						$order_note = 'Payment received by Razorpay Virtual Account ID: ' . $va_id .
-					              ' Payment ID: ' . $razorpayPaymentId . '  on: ' . date('Y/m/d', $payment_timestamp) .
+					              ' Payment ID: ' . $razorpayPaymentId . '  on: ' . $payment_datetime->format('Y-m-d H:i:s') .
 					              ' Payment description: ' . $payment_description . ' bank reference: ' . $bank_reference;
 						// we found a payment that matches our condition so we add an order note so store manager can see
 						$order->add_order_note($order_note);
@@ -312,7 +313,7 @@ class RZP_Webhook
 						$order->update_meta_data('payment_notes_by_customer', $payment_description);
 						$order->save;
 
-						$transaction_id = $razorpayPaymentId . "," . $payment_date . "," . $va_id .
+						$transaction_id = $razorpayPaymentId . "," . $payment_datetime->format('Y-m-d H:i:s') . "," . $va_id .
 										"," . $bank_reference;
 						$order->payment_complete($transaction_id);
 						if ($this->verbose) {
