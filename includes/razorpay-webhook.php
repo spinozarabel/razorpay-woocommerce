@@ -169,7 +169,7 @@ class RZP_Webhook
 		($this->verbose ? $this->logData($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid) : false);
 
 		// Is this payment already reconciled?	If so webhook redundant, exit	
-		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid) == false )
+		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid) == true )
 			{
 				return;
 			}
