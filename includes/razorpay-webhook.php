@@ -479,7 +479,6 @@ class RZP_Webhook
 			
 		}
 		// we have checked all orders and none can be reconciled with our webhook payment
-		unset $order;	// because of the for each loop
 		return null;
     }
 	
