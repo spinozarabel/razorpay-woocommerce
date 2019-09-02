@@ -40,7 +40,7 @@ class RZP_Webhook
 
 		$this->verbose	= self::VERBOSE;
 		
-		$this->timezone = self::TIMEZONE;							// MA returns 'Asia/Kolkata'
+		$this->timezone =  new DateTimeZone(self::TIMEZONE);		// MA returns 'Asia/Kolkata'
     }
 
     /**
@@ -150,7 +150,6 @@ class RZP_Webhook
      */
     protected function vaCredited(array $data)
     {
-		$timezone 	= new DateTimeZone($this->timezone);	// create a new timezone object for our local time
 		
 		$payment_obj				= (object) $data['payload']['payment']['entity'];			// from webhook
 		$va_obj						= (object) $data['payload']['virtual_account']['entity'];	// from webhook
@@ -159,7 +158,7 @@ class RZP_Webhook
 		$details_obj		= (object) $this->getVaPaymentEntity($payment_obj->id, $data);
 
 		$payment_datetime	= new DateTime('@' . $payment_obj->created_at);
-		$payment_datetime->setTimezone($timezone);
+		$payment_datetime->setTimezone($this->timezone);
 
 		// get the user details based on WP username that should be same as Moodle userid (not ID Number)
 		$wp_user 			= get_user_by('login', $va_obj->notes['id']);		// get user by login (same as Moodle userid in User tables)
