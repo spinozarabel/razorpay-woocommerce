@@ -152,27 +152,16 @@ class RZP_Webhook
     {
 		$timezone 	= new DateTimeZone($this->timezone);
 		
-		$obj		= $data['payload']['payment']['entity'];	// convert associative array to object
+		$payment_obj		= (object) $data['payload']['payment']['entity'];	// convert associative array to object
+		
+		$va_obj				= (object) $data['payload']['virtual_account']['entity'];
 
-		$payment_datetime	= new DateTime('@' . $data['payload']['payment']['entity']['created_at']);
+		$payment_datetime	= new DateTime('@' . $payment_obj->created_at);
 		$payment_datetime->setTimezone($timezone);
 
-		// get payment details using the webhook payment ID
-		$va_payment 		= $this->getVaPaymentEntity($obj->id, $data);
-
-		// with this payment entity, get the associated VA ID
-		$va_id				= $va_payment['virtual_account']['id'];
-
-		$sritoni_id			= $va_payment['virtual_account']['notes']['idnumber'];
-
-		// get the WP username from the VA notes. Note that this is the Moodle ID, not the WP userid
-		$webhook_wp_username = $va_payment['virtual_account']['notes']['id'];
-
-		$bank_reference		= $va_payment['bank_reference'];
-
 		// get the user details based on username
-		$webhook_wp_user = get_user_by('login', $webhook_wp_username);
-		$webhook_wp_userid = $webhook_wp_user->ID ?? "web_hook_user_not_found";
+		$wp_user 			= get_user_by('login', $va_obj->notes->);
+		$wp_userid 			= $webhook_wp_user->ID ?? "web_hook_user_not_found";
 		// log all extracted data if verbose
 		if ($this->verbose) {
 							error_log(print_r('webhook payment_ID: ' , true));
