@@ -465,8 +465,8 @@ class RZP_Webhook
 			
 			if 	( 
 					( $payment_obj->amount == round($order->get_total() * 100) ) 	&&		// payment amount matches order amount in paise
-					( $payment_datetime > $order_creation_datetime )				&&		// payment is after order creation
-																						)
+					( $payment_datetime > $order_creation_datetime )						// payment is after order creation
+				)
 			{
 				// we satisfy all conditions, this order reconciles with the webhook payment
 				return $order;
@@ -482,6 +482,7 @@ class RZP_Webhook
 		unset $order;	// because of the for each loop
 		return null;
     }
+	
 	/**
      * Updates Meta of Reconciled Order and changes its status to completed
      */
