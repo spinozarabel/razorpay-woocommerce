@@ -162,7 +162,7 @@ class RZP_Webhook
 		$payment_datetime->setTimezone($timezone);
 
 		// get the user details based on WP username that should be same as Moodle userid (not ID Number)
-		$wp_user 			= get_user_by('login', $va_obj->notes->id);		// get user by login (same as Moodle userid in User tables)
+		$wp_user 			= get_user_by('login', $va_obj->notes['id']);		// get user by login (same as Moodle userid in User tables)
 		$wp_userid 			= $wp_user->ID ?? "web_hook_wpuser_not_found";	// get WP user ID
 		
 		// log all extracted data if verbose
@@ -382,10 +382,10 @@ class RZP_Webhook
 		error_log(print_r($va_obj->id , true));
 		
 		error_log(print_r('webhook payment sritoni ID: ' , true));
-		error_log(print_r($va_obj->notes->idnumber , true));
+		error_log(print_r($va_obj->notes['idnumber'] , true));
 		
 		error_log(print_r('webhook payment WP username: ' , true));
-		error_log(print_r($va_obj->notes->id , true));
+		error_log(print_r($va_obj->notes['id'] , true));
 		
 		error_log(print_r('webhook user WP userID ' , true));
 		error_log(print_r($wp_userid , true));
