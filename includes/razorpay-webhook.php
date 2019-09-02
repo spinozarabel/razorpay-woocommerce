@@ -169,18 +169,27 @@ class RZP_Webhook
 		($this->verbose ? $this->logData($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid) : false);
 
 		// Is this payment already reconciled?	If so webhook redundant, exit	
-		($this->anyReconciledOrders($payment_obj->id, $wp_userid) ? return : false);
+		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid) == false )
+			{
+				return;
+			}
 		
 		// If we have reached this far, webhook data is fresh and so let's reconcile webhook payment against any valid open on-hold vabacs order
 		$open_orders = $this->getOpenOrders($wp_userid);
 		
 		// if null exit, there are no open orders for this user to reconcile
-		($open_orders == null ? return : false);
+		if ( $open_orders == null )
+			{
+				return;
+			}
 		
 		// we do have open orders for this user, so lets see if we can reconcile the webhook payment to one of these open orders
 		$reconciledOrder	= $this->reconcileOrder($open_orders, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 		// if reconciled order is null then exit
-		($reconciledOrder 	== null ? return : false) ;
+		if ( $reconciledOrder == null )
+			{
+				return;
+			}
 		// Update reconciled order's meta with webhook payment details and change order status to completed
 		$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 
