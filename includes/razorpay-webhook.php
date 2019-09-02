@@ -352,7 +352,7 @@ class RZP_Webhook
 	/**
      * Log data extracted from webhook
      */
-    protected function logData(($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid)
+    protected function logData($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid)
     {
         error_log(print_r('webhook payment object: ' , true));
 		error_log(print_r($payment_obj , true));
