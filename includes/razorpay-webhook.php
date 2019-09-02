@@ -357,6 +357,9 @@ class RZP_Webhook
         error_log(print_r('webhook payment object: ' , true));
 		error_log(print_r($payment_obj , true));
 		
+		error_log(print_r('webhook VA object: ' , true));
+		error_log(print_r($va_obj , true));
+		
 		error_log(print_r('webhook Payment Details Object: ' , true));
 		error_log(print_r($details_obj , true));
 		
