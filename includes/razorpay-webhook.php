@@ -30,14 +30,17 @@ class RZP_Webhook
 	const SUBSCRIPTION_CANCELLED    = 'subscription.cancelled';
 	const VA_CREDITED     	 		= "virtual_account.credited";	// MA
 	const VERBOSE			 		= true;							// MA
+	const TIMEZONE					= "Asia/Kolkata";				// MA
 
     function __construct()
     {
         $this->razorpay = new WC_Razorpay(false);
 
-        $this->api = $this->razorpay->getRazorpayApiInstance();
+        $this->api 		= $this->razorpay->getRazorpayApiInstance();
 
-		$this->verbose = self::VERBOSE;
+		$this->verbose	= self::VERBOSE;
+		
+		$this->timezone = self::TIMEZONE;							// MA
     }
 
     /**
@@ -147,26 +150,15 @@ class RZP_Webhook
      */
     protected function vaCredited(array $data)
     {
-		$timezone = new DateTimeZone('Asia/Kolkata');
+		$timezone 	= new DateTimeZone($this->timezone);
 		
-		$razorpayPaymentId	= $data['payload']['payment']['entity']['id'];
-		
-
-		$payment_amount_p	= $data['payload']['payment']['entity']['amount']; // in paisa
+		$obj		= $data['payload']['payment']['entity'];	// convert associative array to object
 
 		$payment_datetime	= new DateTime('@' . $data['payload']['payment']['entity']['created_at']);
 		$payment_datetime->setTimezone($timezone);
-		
-		//$payment_timestamp	= $data['payload']['payment']['entity']['created_at'];
 
-
-		//$payment_date		= date('Y/m/d H:i:s', $payment_timestamp);
-		// with this payment ID get the VA payment
-
-		$payment_description	= $data['payload']['payment']['entity']['description'];
-
-
-		$va_payment 		= $this->getVaPaymentEntity($razorpayPaymentId, $data);
+		// get payment details using the webhook payment ID
+		$va_payment 		= $this->getVaPaymentEntity($obj->id, $data);
 
 		// with this payment entity, get the associated VA ID
 		$va_id				= $va_payment['virtual_account']['id'];
