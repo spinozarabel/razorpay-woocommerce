@@ -16,6 +16,7 @@ if ( ! defined( 'ABSPATH' ) )
 }
 
 require_once __DIR__.'/includes/razorpay-webhook.php';
+require_once __DIR__.'/includes/ma_razorpay-webhook.php';
 require_once __DIR__.'/razorpay-sdk/Razorpay.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
@@ -902,7 +903,7 @@ EOT;
 // This is set to a priority of 10
 function razorpay_webhook_init()
 {
-    $rzpWebhook = new RZP_Webhook();
+    $rzpWebhook = new RZP_Webhook_ma();
 
     $rzpWebhook->process();
 }
