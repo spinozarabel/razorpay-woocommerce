@@ -19,7 +19,8 @@ class RZP_Webhook_ma extends RZP_Webhook
 
     function __construct()
     {
-
+		parent::__construct();
+		
 		$this->verbose	= self::VERBOSE;
 		
 		$this->timezone =  new DateTimeZone(self::TIMEZONE);		// MA returns 'Asia/Kolkata'
