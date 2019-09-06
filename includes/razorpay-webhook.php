@@ -500,9 +500,16 @@ class RZP_Webhook
 		$order->update_meta_data('bank_reference', $details_obj->bank_reference);
 		$order->update_meta_data('payment_notes_by_customer', $payment_obj->description);
 		$order->save;
+		
+		$transaction_arr	= array(
+										'payment_id'		=> $payment_obj->id,
+										'payment_date'		=> $payment_datetime->format('Y-m-d H:i:s'),
+										'va_id'				=> $va_obj->id,
+										'bank_reference'	=> $details_obj->bank_reference,
+									);
 
-		$transaction_id = $payment_obj->id . "," . $payment_datetime->format('Y-m-d H:i:s') . "," . $va_obj->id .
-						"," . $details_obj->bank_reference;
+		$transaction_id = json_encode($transaction_arr);
+		
 		$order->payment_complete($transaction_id);
 		
 		if ($this->verbose) {
