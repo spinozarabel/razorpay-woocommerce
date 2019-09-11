@@ -428,7 +428,7 @@ class RZP_Webhook
 			if ($this->verbose)
 			{
 				error_log(print_r('Following orders already completed using this payment_id:' . $payment_id, true));
-				foreach $orders_completed as $order
+				foreach ($orders_completed as $order)
 						{
 							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
 						}
