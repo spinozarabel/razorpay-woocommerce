@@ -173,7 +173,7 @@ class RZP_Webhook
 		if ($reconciledOrder != null)
 			{
 				$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
-				return; // donw, exit out of webhook processing
+				return; // done, exit out of webhook processing
 			}
 		// if not we follow the old method of reconciliation by checking all open orders
 		// Is this payment already reconciled?	If so webhook redundant, exit	
@@ -427,8 +427,11 @@ class RZP_Webhook
 		{	// we already have completed orders that reconcile this payment ID so this webhook must be old or redundant, so quit
 			if ($this->verbose)
 			{
-				error_log(print_r('orders already completed using this payment_id:' . $payment_id, true));
-				error_log(print_r($orders_completed, true));
+				error_log(print_r('Following orders already completed using this payment_id:' . $payment_id, true));
+				foreach $orders_completed as $order
+						{
+							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
+						}
 			}
 			// true, reconciled eorders exist
 			return true;
@@ -457,7 +460,14 @@ class RZP_Webhook
 					}
 				return null;
 			}
-		// we have valid open orders for this user		
+		// we have valid open orders for this user
+		if ($this->verbose)
+					{
+						foreach $orders as $order
+						{
+							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
+						}
+					}
 		return $orders;
     }
 	
