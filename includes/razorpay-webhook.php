@@ -171,10 +171,10 @@ class RZP_Webhook
 		$reconciledOrder = $this->reconcileOrderUsingPaymentInfo($payment_obj, $wp_userid, $payment_datetime);
 		
 		if ($reconciledOrder != null)
-		{
-			$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
-			return; // donw, exit out of webhook processing
-		}
+			{
+				$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
+				return; // donw, exit out of webhook processing
+			}
 		// if not we follow the old method of reconciliation by checking all open orders
 		// Is this payment already reconciled?	If so webhook redundant, exit	
 		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid) == true )
@@ -190,20 +190,19 @@ class RZP_Webhook
 			{
 				return;
 			}
-			else
+		else
 			{		
 				// we do have open orders for this user, so lets see if we can reconcile the webhook payment to one of these open orders
 				$reconciledOrder = $this->reconcileOrder($open_orders, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
-			}
-		// if reconciled order is null then exit
-		if ( $reconciledOrder == null )
-			{
+				// if reconciled order is null then exit
+				if ( $reconciledOrder == null )
+					{
+						return;
+					}
+				// If we got here, we must have a $reconcileOrder, lets update the meta and status
+				$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 				return;
 			}
-		// If we got here, we must have a $reconcileOrder, lets update the meta and status
-		$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
-
-	return;
 
 	}
 
@@ -408,6 +407,8 @@ class RZP_Webhook
 	
 	/**
      * Gets any orders that maybe already reconciled with this payment
+	 * return false if if no reconciled orders already exist for this webhook payment
+	 * return true if this payment is alreay present in an existing completed / processsing order
      */
     protected function anyReconciledOrders($payment_id, $wp_userid)
     {
@@ -560,6 +561,11 @@ class RZP_Webhook
 																						)
 			{
 				// we satisfy all conditions, this order reconciles with the webhook payment
+				if ($this->verbose)
+				{
+					error_log(print_r('Reconciled order No: ' . $order->get_id() . 'using Order number in payment description', true));
+					error_log(print_r($payment_obj , true));
+				}
 				return $order;
 			}
 		
