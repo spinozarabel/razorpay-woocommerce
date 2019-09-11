@@ -465,7 +465,7 @@ class RZP_Webhook
 					{
 						foreach ($orders as $order)
 						{
-							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
+							error_log(print_r('Order No: ' . $order-get_id() . 'Open for this user', true));
 						}
 					}
 		return $orders;
