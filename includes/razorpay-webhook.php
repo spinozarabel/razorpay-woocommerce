@@ -430,7 +430,7 @@ class RZP_Webhook
 				error_log(print_r('Following orders already completed using this payment_id:' . $payment_id, true));
 				foreach ($orders_completed as $order)
 						{
-							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
+							error_log(print_r('Order No: ' . $order-get_id() . 'Open for this user', true));
 						}
 			}
 			// true, reconciled eorders exist
