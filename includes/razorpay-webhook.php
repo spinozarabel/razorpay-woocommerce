@@ -463,7 +463,7 @@ class RZP_Webhook
 		// we have valid open orders for this user
 		if ($this->verbose)
 					{
-						foreach $orders as $order
+						foreach ($orders as $order)
 						{
 							error_log(print_r('Order No: ', . $order-get_id() . 'Open for this user', true));
 						}
