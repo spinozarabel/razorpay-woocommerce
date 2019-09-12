@@ -170,7 +170,7 @@ class RZP_Webhook
 		// try reconciliation using any order information in payment description entered by customer
 		$reconciledOrder = $this->reconcileOrderUsingPaymentInfo($payment_obj, $wp_userid, $payment_datetime);
 		
-		if ($reconciledOrder != null)
+		if ( !empty($reconciledOrder) )
 			{
 				$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 				return; // done, exit out of webhook processing
@@ -551,16 +551,23 @@ class RZP_Webhook
 	{
 		// extract payment information from payment object
 		$str = $payment_obj->description;
+		if ( empty($str)  )
+			{
+				error_log(print_r('payment description: ' . $str , true));
+				return null;
+			}
 		$str = str_replace(array('+','-'), '', $str);
 		$orderIdInPayment = abs((int) filter_var($str, FILTER_SANITIZE_NUMBER_INT));
 		
 		// see if an order exists with this order number and with necessary other details
-		$order = wc_get_order($orderIdInPayment) ?? null;
+		$order = wc_get_order($orderIdInPayment);
 		// return if order doesn't exist and reconcilde using usual way
-		if ( $order == null )
-		{
-			return null;
-		}
+		if ( empty($order) )
+			{
+				error_log(print_r('Extracted order ID from payment description: ' . $orderIdInPayment , true));
+				error_log(print_r('wc_get_order object was empty, so returning' , true));
+				return null;
+			}
 		// so we ow have a valid order although we don;t know if amounts and dates are compatible so lets check.
 		$order_creation_datetime		= new DateTime( '@' . $order->get_date_created()->getTimestamp());
 		$order_creation_datetime->setTimezone($this->timezone);
