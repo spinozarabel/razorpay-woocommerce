@@ -177,7 +177,7 @@ class RZP_Webhook
 			}
 		// if not we follow the old method of reconciliation by checking all open orders
 		// Is this payment already reconciled?	If so webhook redundant, exit	
-		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid) == true )
+		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid)  )
 			{
 				return;
 			}
@@ -430,7 +430,7 @@ class RZP_Webhook
 				error_log(print_r('Following orders already completed using this payment_id:' . $payment_id, true));
 				foreach ($orders_completed as $order)
 						{
-							error_log(print_r('Order No: ' . $order-get_id() . 'Open for this user', true));
+							error_log(print_r('Order No: ' . $order->get_id() . 'Open for this user', true));
 						}
 			}
 			// true, reconciled eorders exist
