@@ -417,8 +417,10 @@ class RZP_Webhook
 														'processing',
 														'completed',
 													),
+						'limit'				=> 1,			// at least one order exists for this payment?
 						'payment_method' 	=> 'vabacs',
 						'customer_id'		=> $wp_userid,
+						'meta-key'			=> "va_payment_id",
 						'meta_value'		=> $payment_id,
 					 );
 		$orders_completed = wc_get_orders( $args ); // these are orders for this user either processing or completed
@@ -430,7 +432,7 @@ class RZP_Webhook
 				error_log(print_r('Following orders already completed using this payment_id:' . $payment_id, true));
 				foreach ($orders_completed as $order)
 						{
-							error_log(print_r('Order No: ' . $order->get_id() . 'Open for this user', true));
+							error_log(print_r('Order No: ' . $order->get_id() , true));
 						}
 			}
 			// true, reconciled eorders exist
