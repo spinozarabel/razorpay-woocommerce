@@ -39,7 +39,7 @@ class RZP_Webhook
         $this->api 		= $this->razorpay->getRazorpayApiInstance();
 
 		$this->verbose	= self::VERBOSE;
-		
+
 		$this->timezone =  new DateTimeZone(self::TIMEZONE);		// MA returns 'Asia/Kolkata'
     }
 
@@ -145,15 +145,15 @@ class RZP_Webhook
 
 	/**
      * Handling the virtual acount credited webhook
-     * 
+     *
      * @param array $data Webook Data
      */
     protected function vaCredited(array $data)
     {
-		
+
 		$payment_obj				= (object) $data['payload']['payment']['entity'];			// from webhook
 		$va_obj						= (object) $data['payload']['virtual_account']['entity'];	// from webhook
-		
+
 		// get payment details based on payment ID extracted
 		$details_obj		= (object) $this->getVaPaymentEntity($payment_obj->id, $data);
 
@@ -163,35 +163,35 @@ class RZP_Webhook
 		// get the user details based on WP username that should be same as Moodle userid (not ID Number)
 		$wp_user 			= get_user_by('login', $va_obj->notes['id']);		// get user by login (same as Moodle userid in User tables)
 		$wp_userid 			= $wp_user->ID ?? "web_hook_wpuser_not_found";	// get WP user ID
-		
+
 		// log all extracted data if verbose
 		($this->verbose ? $this->logData($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid) : false);
-		
+
 		// try reconciliation using any order information in payment description entered by customer
 		$reconciledOrder = $this->reconcileOrderUsingPaymentInfo($payment_obj, $wp_userid, $payment_datetime);
-		
+
 		if ( !empty($reconciledOrder) )
 			{
 				$this->orderUpdateMetaSetCompleted($reconciledOrder, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 				return; // done, exit out of webhook processing
 			}
 		// if not we follow the old method of reconciliation by checking all open orders
-		// Is this payment already reconciled?	If so webhook redundant, exit	
+		// Is this payment already reconciled?	If so webhook redundant, exit
 		if ( $this->anyReconciledOrders($payment_obj->id, $wp_userid)  )
 			{
 				return;
 			}
-		
+
 		// If we have reached this far, webhook data is fresh and so let's reconcile webhook payment against any valid open on-hold vabacs order
 		$open_orders = $this->getOpenOrders($wp_userid);
-		
+
 		// if null exit, there are no open orders for this user to reconcile
 		if ( $open_orders == null )
 			{
 				return;
 			}
 		else
-			{		
+			{
 				// we do have open orders for this user, so lets see if we can reconcile the webhook payment to one of these open orders
 				$reconciledOrder = $this->reconcileOrder($open_orders, $payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid);
 				// if reconciled order is null then exit
@@ -357,7 +357,7 @@ class RZP_Webhook
 
         return (int) round($order->order_total * 100);
     }
-	
+
 	/**
      * Log data extracted from webhook
      */
@@ -365,46 +365,46 @@ class RZP_Webhook
     {
         error_log(print_r('webhook payment object: ' , true));
 		error_log(print_r($payment_obj , true));
-		
+
 		error_log(print_r('webhook VA object: ' , true));
 		error_log(print_r($va_obj , true));
-		
+
 		error_log(print_r('webhook Payment Details Object: ' , true));
 		error_log(print_r($details_obj , true));
-		
+
 		error_log(print_r('webhook payment_ID: ' , true));
 		error_log(print_r($payment_obj->id , true));
-		
+
 		error_log(print_r('webhook payment amount in Paise: ' , true));
 		error_log(print_r($payment_obj->amount , true));
-		
+
 		error_log(print_r('webhook payment timestamp: ' , true));
 		error_log(print_r($payment_obj->created_at , true));
-		
+
 		error_log(print_r('webhook payment date(IST): ' , true));
 		error_log(print_r($payment_datetime->format('Y-m-d H:i:s') , true));
-		
+
 		error_log(print_r('webhook payment user entered description: ' , true));
 		error_log(print_r($payment_obj->description , true));
-		
+
 		error_log(print_r('webhook payment VA ID: ' , true));
 		error_log(print_r($va_obj->id , true));
-		
+
 		error_log(print_r('webhook payment sritoni ID: ' , true));
 		error_log(print_r($va_obj->notes['idnumber'] , true));
-		
+
 		error_log(print_r('webhook payment WP username: ' , true));
 		error_log(print_r($va_obj->notes['id'] , true));
-		
+
 		error_log(print_r('webhook user WP userID ' , true));
 		error_log(print_r($wp_userid , true));
-		
+
 		error_log(print_r('webhook payment bank reference: ' , true));
 		error_log(print_r($details_obj->bank_reference , true));
-				
+
 		return;
     }
-	
+
 	/**
      * Gets any orders that maybe already reconciled with this payment
 	 * return false if if no reconciled orders already exist for this webhook payment
@@ -424,7 +424,7 @@ class RZP_Webhook
 						'meta_value'		=> $payment_id,
 					 );
 		$orders_completed = wc_get_orders( $args ); // these are orders for this user either processing or completed
-		
+
 		if (!empty($orders_completed))
 		{	// we already have completed orders that reconcile this payment ID so this webhook must be old or redundant, so quit
 			if ($this->verbose)
@@ -441,7 +441,7 @@ class RZP_Webhook
 		// false, reconciled orders don't exist for this payment
 		return false;
     }
-	
+
 	/**
      * returns any open orders for this user
      */
@@ -453,7 +453,7 @@ class RZP_Webhook
 						'customer_id'		=> $wp_userid,
 					 );
 		$orders = wc_get_orders( $args );
-		
+
 		if (empty($orders))
 			{	// No orders exist for this webhook payment ID, log that fact and return null
 				if ($this->verbose)
@@ -467,12 +467,13 @@ class RZP_Webhook
 					{
 						foreach ($orders as $order)
 						{
-							error_log(print_r('Order No: ' . $order->get_id() . 'Open for this user', true));
+							error_log(print_r('Order No: ' . $order->get_id() . ' Open for this user', true));
+                            error_log(print_r('Lets see if the above order can be reconciled with this webhook payment', true));
 						}
 					}
 		return $orders;
     }
-	
+
 	/**
      * take all open orders and see if they can be reconciled against webhook payment
 	 * Order is reconciled if:
@@ -489,13 +490,17 @@ class RZP_Webhook
 		{
 			$order_creation_datetime		= new DateTime( '@' . $order->get_date_created()->getTimestamp());
 			$order_creation_datetime->setTimezone($this->timezone);
-			
-			if 	( 
+
+			if 	(
 					( $payment_obj->amount == round($order->get_total() * 100) ) 	&&		// payment amount matches order amount in paise
 					( $payment_datetime > $order_creation_datetime )						// payment is after order creation
 				)
 			{
 				// we satisfy all conditions, this order reconciles with the webhook payment
+                if ($this->verbose)
+                {
+                    error_log(print_r('Order No: ' . $order->get_id() . ' is reconcilable with webhook payment', true));
+                }
 				return $order;
 			}
 			else
@@ -503,12 +508,12 @@ class RZP_Webhook
 				// This order does not reconcile with our webhook payment so check for next order in loop`
 				continue;
 			}
-			
+
 		}
 		// we have checked all orders and none can be reconciled with our webhook payment
 		return null;
     }
-	
+
 	/**
      * Updates Meta of Reconciled Order and changes its status to completed
      */
@@ -525,7 +530,7 @@ class RZP_Webhook
 		$order->update_meta_data('bank_reference', $details_obj->bank_reference);
 		$order->update_meta_data('payment_notes_by_customer', $payment_obj->description);
 		$order->save;
-		
+
 		$transaction_arr	= array(
 										'payment_id'		=> $payment_obj->id,
 										'payment_date'		=> $payment_datetime->format('Y-m-d H:i:s'),
@@ -534,16 +539,17 @@ class RZP_Webhook
 									);
 
 		$transaction_id = json_encode($transaction_arr);
-		
+
 		$order->payment_complete($transaction_id);
-		
+
 		if ($this->verbose) {
-			error_log(print_r('Order completed after meta updated with Webhook payment:' . $transaction_id, true));
+			error_log(print_r('Order:' . $order->get_id() .
+                    ' status payment complete, meta updated with Webhook payment:' . $transaction_id, true));
 		}
-		
+
         return true;
     }
-	
+
 	/*
 	*  extracts order no if any, present on the payment description as entered by payer
 	*  If the payment is valid and amounts and dates are reconciled then this order is considered reconcilable
@@ -560,7 +566,7 @@ class RZP_Webhook
 			}
 		$str = str_replace(array('+','-'), '', $str);
 		$orderIdInPayment = abs((int) filter_var($str, FILTER_SANITIZE_NUMBER_INT));
-		
+
 		// see if an order exists with this order number and with necessary other details
 		$order = wc_get_order($orderIdInPayment);
 		// return if order doesn't exist and reconcilde using usual way
@@ -573,8 +579,8 @@ class RZP_Webhook
 		// so we ow have a valid order although we don;t know if amounts and dates are compatible so lets check.
 		$order_creation_datetime		= new DateTime( '@' . $order->get_date_created()->getTimestamp());
 		$order_creation_datetime->setTimezone($this->timezone);
-		
-		if 	( 
+
+		if 	(
 					( $payment_obj->amount == round($order->get_total() * 100) ) 	&&		// payment amount matches order amount in paise
 					( $payment_datetime > $order_creation_datetime )						// payment is after order creation
 																						)
@@ -589,7 +595,7 @@ class RZP_Webhook
 			}
 		// even though we could get some order based on payment description of payer, this is  not reconcilable so return null
 		return null;
-		
+
 	}
-	
+
 }
