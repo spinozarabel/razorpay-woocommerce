@@ -28,9 +28,9 @@ class RZP_Webhook
     const PAYMENT_AUTHORIZED 		= 'payment.authorized';
     const PAYMENT_FAILED     		= 'payment.failed';
 	const SUBSCRIPTION_CANCELLED    = 'subscription.cancelled';
-	const VA_CREDITED     	 		= "virtual_account.credited";	// MA
+	const VA_CREDITED     	 		= 'virtual_account.credited';	// MA
 	const VERBOSE			 		= true;							// MA
-	const TIMEZONE					= "Asia/Kolkata";				// MA
+	const TIMEZONE					= 'Asia/Kolkata';				// MA
 
     function __construct()
     {
@@ -161,8 +161,8 @@ class RZP_Webhook
 		$payment_datetime->setTimezone($this->timezone);
 
 		// get the user details based on WP username that should be same as Moodle userid (not ID Number)
-		$wp_user 			= get_user_by('login', $va_obj->notes['id']);		// get user by login (same as Moodle userid in User tables)
-		$wp_userid 			= $wp_user->ID ?? "web_hook_wpuser_not_found";	// get WP user ID
+		$wp_user 			= get_user_by('login', $va_obj->notes['id']);       // get user by login (same as Moodle userid in User tables)
+		$wp_userid 			= $wp_user->ID ?? "web_hook_wpuser_not_found";      // get WP user ID
 
 		// log all extracted data if verbose
 		($this->verbose ? $this->logData($payment_obj, $va_obj, $details_obj, $payment_datetime, $wp_userid) : false);
