@@ -3,8 +3,8 @@
  * Plugin Name: Razorpay for WooCommerce
  * Plugin URI: https://razorpay.com
  * Description: Razorpay Payment Gateway Integration for WooCommerce
- * Version: 2.3.0
- * Stable tag: 2.3.0
+ * Version: 2.3.1
+ * Stable tag: 2.3.1
  * Author: Team Razorpay
  * WC tested up to: 3.7.1
  * Author URI: https://razorpay.com
@@ -39,6 +39,7 @@ function woocommerce_razorpay_init()
         const RAZORPAY_PAYMENT_ID            = 'razorpay_payment_id';
         const RAZORPAY_ORDER_ID              = 'razorpay_order_id';
         const RAZORPAY_SIGNATURE             = 'razorpay_signature';
+        const RAZORPAY_WC_FORM_SUBMIT        = 'razorpay_wc_form_submit';
 
         const INR                            = 'INR';
         const CAPTURE                        = 'capture';
@@ -610,7 +611,7 @@ function woocommerce_razorpay_init()
                     <input type="hidden" name="description" value="'.$data['description'].'">
                     <input type="hidden" name="image" value="'.$data['preference']['image'].'">
                     <input type="hidden" name="callback_url" value="'.$data['callback_url'].'">
-                    <input type="hidden" name="cancel_url" value="'.$data['callback_url'].'">
+                    <input type="hidden" name="cancel_url" value="'.$data['cancel_url'].'">
                     '. $formFields .'
                 </form>';
 
@@ -623,6 +624,7 @@ function woocommerce_razorpay_init()
         function generateOrderForm($data)
         {
             $redirectUrl = $this->getRedirectUrl();
+            $data['cancel_url'] = wc_get_checkout_url();
 
             $api = new Api($this->getSetting('key_id'),"");
 
@@ -790,9 +792,23 @@ EOT;
             }
             else
             {
-                $success = false;
-                $error = 'Customer cancelled the payment';
-                $this->handleErrorCase($order);
+                if($_POST[self::RAZORPAY_WC_FORM_SUBMIT] ==1)
+                {
+                    $success = false;
+                    $error = 'Customer cancelled the payment';
+                    $this->handleErrorCase($order);
+
+                }
+                else
+                {
+                    $success = false;
+                    $error = "Payment Failed.";
+
+                    $this->updateOrder($order, $success, $error, $razorpayPaymentId);
+
+                    wp_redirect(wc_get_checkout_url());
+                    exit;
+                }
             }
 
             $this->updateOrder($order, $success, $error, $razorpayPaymentId);
