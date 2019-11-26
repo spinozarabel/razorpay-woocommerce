@@ -3,8 +3,8 @@
  * Plugin Name: Razorpay for WooCommerce
  * Plugin URI: https://razorpay.com
  * Description: Razorpay Payment Gateway Integration for WooCommerce
- * Version: 2.3.1
- * Stable tag: 2.3.1
+ * Version: 2.3.2
+ * Stable tag: 2.3.2
  * Author: Team Razorpay
  * WC tested up to: 3.7.1
  * Author URI: https://razorpay.com
@@ -505,6 +505,11 @@ function woocommerce_razorpay_init()
             $razorpayOrderId = $razorpayOrder['id'];
 
             $woocommerce->session->set($sessionKey, $razorpayOrderId);
+
+            //update it in order comments
+            $order = new WC_Order($orderId);
+
+            $order->add_order_note("Razorpay OrderId: $razorpayOrderId");
 
             return $razorpayOrderId;
         }
