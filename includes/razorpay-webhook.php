@@ -31,6 +31,7 @@ class RZP_Webhook
 	const VA_CREDITED     	 		= 'virtual_account.credited';	// MA
 	const VERBOSE			 		= true;							// MA
 	const TIMEZONE					= 'Asia/Kolkata';				// MA
+    const REFUNDED_CREATED          = 'refund.created';             // MA
 
     function __construct()
     {
