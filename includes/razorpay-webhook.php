@@ -599,4 +599,88 @@ class RZP_Webhook
 
 	}
 
+    /**
+     * Process Order Refund through Webhook
+     * @param array $data
+     * @return void|WP_Error
+     * @throws Exception
+     */
+    public function refundedCreated(array $data)
+    {
+        // We don't process subscription/invoice payments here
+        if (isset($data['payload']['payment']['entity']['invoice_id']) === true)
+        {
+            return;
+        }
+
+        $razorpayPaymentId = $data['payload']['refund']['entity']['payment_id'];
+
+        $payment = $this->getPaymentEntity($razorpayPaymentId, $data);
+
+        //
+        // Order entity should be sent as part of the webhook payload
+        //
+        $orderId = $payment['notes']['woocommerce_order_id'];
+
+        $order = new WC_Order($orderId);
+
+        // If it is already marked as unpaid, ignore the event
+        if ($order->needs_payment() === true)
+        {
+            return;
+        }
+
+        // If it's something else such as a WC_Order_Refund, we don't want that.
+        if( ! is_a( $order, 'WC_Order') )
+        {
+            $log = array(
+                'Error' =>  'Provided ID is not a WC Order',
+            );
+
+            error_log(json_encode($log));
+        }
+
+        if( 'refunded' == $order->get_status() )
+        {
+            $log = array(
+                'Error' =>  'Order has been already refunded for Order Id -'. $orderId,
+            );
+
+            error_log(json_encode($log));
+        }
+
+        $refund_amount = round(($data['payload']['refund']['entity']['amount'] / 100), 2);
+
+        $refund_reason = $data['payload']['refund']['entity']['notes']['comment'];
+
+        try
+        {
+            wc_create_refund( array(
+                'amount'         => $refund_amount,
+                'reason'         => $refund_reason,
+                'order_id'       => $orderId,
+                'line_items'     => array(),
+                'refund_payment' => false
+            ));
+
+        }
+        catch (Exception $e)
+        {
+            //
+            // Capture will fail if the payment is already captured
+            //
+            $log = array(
+                'message' => $e->getMessage(),
+                'payment_id' => $razorpayPaymentId,
+                'event' => $data['event']
+            );
+
+            error_log(json_encode($log));
+
+        }
+
+        // Graceful exit since payment is now refunded.
+        exit();
+    }
+
 }
