@@ -3,8 +3,8 @@
  * Plugin Name: Razorpay for WooCommerce
  * Plugin URI: https://razorpay.com
  * Description: Razorpay Payment Gateway Integration for WooCommerce
- * Version: 2.3.2
- * Stable tag: 2.3.2
+ * Version: 2.4.0
+ * Stable tag: 2.4.0
  * Author: Team Razorpay
  * WC tested up to: 3.7.1
  * Author URI: https://razorpay.com
@@ -641,8 +641,8 @@ function woocommerce_razorpay_init()
 
                 $data['preference']['image'] = $merchantPreferences['options']['image'];
 
-                return $this->hostCheckoutScripts($data); 
-                
+                return $this->hostCheckoutScripts($data);
+
             } else {
                 $this->enqueueCheckoutScripts($data);
 
@@ -801,19 +801,18 @@ EOT;
                 {
                     $success = false;
                     $error = 'Customer cancelled the payment';
-                    $this->handleErrorCase($order);
-
                 }
                 else
                 {
                     $success = false;
                     $error = "Payment Failed.";
-
-                    $this->updateOrder($order, $success, $error, $razorpayPaymentId);
-
-                    wp_redirect(wc_get_checkout_url());
-                    exit;
                 }
+
+                $this->handleErrorCase($order);
+                $this->updateOrder($order, $success, $error, $razorpayPaymentId);
+
+                wp_redirect(wc_get_checkout_url());
+                exit;
             }
 
             $this->updateOrder($order, $success, $error, $razorpayPaymentId);

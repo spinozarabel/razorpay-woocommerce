@@ -33,7 +33,7 @@ class RZP_Webhook
 	const TIMEZONE					= 'Asia/Kolkata';				// MA
     const REFUNDED_CREATED          = 'refund.created';             // MA
 
-    function __construct()
+    public function __construct()
     {
         $this->razorpay = new WC_Razorpay(false);
 
@@ -51,10 +51,14 @@ class RZP_Webhook
      *
      * It passes on the webhook in the following cases:
      * - invoice_id set in payment.authorized
+     * - order refunded
      * - Invalid JSON
      * - Signature mismatch
      * - Secret isn't setup
      * - Event not recognized
+     *
+     * @return void|WP_Error
+     * @throws Exception
      */
     public function process()
     {
@@ -127,6 +131,9 @@ class RZP_Webhook
 
                     case self::SUBSCRIPTION_CANCELLED:
                         return $this->subscriptionCancelled($data);
+
+                    case self::REFUNDED_CREATED:
+                        return $this->refundedCreated($data);
 
                     default:
                         return;
